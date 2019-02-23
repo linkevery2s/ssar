@@ -1,0 +1,209 @@
+<!doctype HTML>
+<html>
+<head>
+<title>浸水・積雪ＡＲ</title>
+<meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" >
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="stylesheet" href="lib/jquery-ui-1.10.3.custom.css">
+  <link rel="stylesheet" href="lib/jquery.ui.labeledslider.css">
+  <script src="lib/jquery-1.9.1.js" type="text/javascript"></script>
+  <script src="lib/jquery-ui-1.10.3.custom.js" type="text/javascript"></script>
+  <script src="lib/jquery.ui.labeledslider.js" type="text/javascript"></script>
+
+<style>
+	html, body{
+	margin: 0;padding:0;
+	}
+
+	.came{
+	position: relative;
+	height:500px; 
+	width: 100%; 
+	border: solid 3px #000000;
+	z-index: 0;
+	}
+
+.s_btn{
+    padding: 0.5em 1em;
+    text-decoration: none;
+    border-radius: 3px;
+    font-weight: bold;
+    color: #FFF;
+	background: #03A9F4;
+	border: solid 1px #0f9ada;
+	border-radius: 4px;
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+	text-shadow: 0 1px 0 rgba(0,0,0,0.2);
+}
+
+.s_btn:hover{
+}
+
+#s_bt{
+	position: absolute;
+	margin-top: 10px;
+	margin-left: 10px;
+	z-index: 10;
+}
+
+.nice-textbox{
+  width: 30px;
+  text-align: right;
+  border: 0;
+  color: #f6931f;
+  font-weight: bold;
+  font-size:larger;
+}
+
+#total {
+  width: 30px;
+  text-align: right;
+  border: 0;
+  color: #f6931f;
+  font-weight: bold;
+  font-size:larger;
+}
+
+</style>
+
+<script type="text/javascript">
+ function getAltitude(lon, lat){
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function(){
+    if (xhr.readyState === 4 && xhr.status === 200){
+      var json_data = eval( '('+xhr.responseText +')');
+      var txt;
+      txt = json_data.elevation;
+      var result = document.getElementById('data_result');
+      result.value = txt;
+    }
+  };
+  var url = "https://cyberjapandata2.gsi.go.jp/general/dem/scripts/getelevation.php?lon=" + lon + "&lat=" + lat +"&outtype=JSON";
+  xhr.open('GET', url);
+  xhr.send(null);
+};
+
+var ido, keido;
+function GPS() {
+
+	if (navigator.geolocation) {
+	   //geolocationの利用
+       navigator.geolocation.getCurrentPosition(gps_get,gps_error3);
+     } else {
+     	alert("GPSの取得に失敗したため、起動できません。")
+     }
+
+}
+	
+function gps_error3(error) {
+   		//失敗したら…
+       alert("GPSの取得に失敗したため、起動できません。");
+}
+ 
+function gps_get(position) {
+
+    //成功したら…
+    ido = position.coords.latitude;
+    keido = position.coords.longitude;
+    
+getAltitude(keido, ido);
+
+}
+
+function ar(){
+
+var result = window.confirm('「ながらスマホ」は危険です。\n周りを見て、安全を確認してから、ご利用ください。');
+
+if( result ){
+
+document.getElementById("frame").contentWindow.location.replace("./ar.html");
+
+$("#s_bt").hide();
+
+}
+else{alert("本機能をご利用できません。ご了承ください。");}
+
+}
+
+</script>
+
+  <script>
+    $(function() {
+      var _max = 5;
+      var _min = 0;
+      $('#slider').labeledslider({
+        min: _min,
+        max: _max,
+        step: 0.5,
+        values: [ 0 ],
+        orientation: 'vertical',
+        animate: 'swing',
+        change: function( event, ui ) {
+          var price = ui.value;
+          $('#total').val(price);
+          var pos = (_max - _min) * ui.value - 5;
+          //console.log(pos);
+          //$('#slider-tag').show().animate({bottom: pos+'%'},800)
+            //.html('<span class="slider-value">Unit : ' + ui.value + '</span>');
+        }
+      });
+      //$('#total').val($('#slider').slider('values'));
+      $('#slider-tag').hide();
+    });
+
+  </script>
+
+</head>
+  <body>
+
+	<!--ＡＲ-->
+	<center>
+	<h1>浸水・積雪ＡＲ</h1>
+	</center>
+	
+	<table width="100%" border="0" style="margin:0 0 5px 0; padding:0;">
+	<tr>
+	<td align="right" colspan="2">
+
+			  <label for="total">浸水・積雪 : </label>
+  		  <input type="text" size="6" id="total"></input>
+  			<label for="total">ｍ</label>
+	</td>
+	</tr>
+	
+	<tr>
+	<td>
+
+	<div id="s_bt">
+	<input type="button" value="ARをONにする" onclick="ar()" class='s_btn'></button>
+	</div>
+
+    <div class="came" style="margin:0; padding:0;">
+		<iframe id="frame" style="margin:0; padding:0; z-index: 0;" width="100%" height="500px" allowfullscreen="true" frameBorder="0" scrolling="no"></iframe>
+    </div>
+	</td>
+	
+	<td style="margin:0; padding:0;">
+		<center>
+   			 <div id="slider" style="width:10px;  height: 500px;">
+ 			 </div>
+		</center>
+	</td>
+	</tr>
+	</table>
+
+	<!--標高-->
+	<center>
+    <div>
+    <input type="button"  value="標高を調べる" onclick="GPS()" class='s_btn'></button>
+    標高：<input class="nice-textbox" type="text" size="6" id="data_result">ｍ
+    </div>
+    </center>
+    <br>
+    <!--過去の被害
+	<div>
+    過去の津波・浸水被害
+	</div>-->
+
+  </body>
+</html>
